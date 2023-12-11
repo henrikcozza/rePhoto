@@ -1,4 +1,5 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# rePhoto
+Restoring old photos using web app Nextjs, Supabase and APIs from replicate.com
 
 ## Getting Started
 
