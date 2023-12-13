@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
 
 import { useDropzone } from "react-dropzone";
@@ -28,6 +29,7 @@ export default function ImageUploadPlaceHolder() {
     path: string;
   } | null>(null);
   const [restoredFile, setRestoredFile] = useState<FilePreview | null>();
+  const router = useRouter();
 
   const onDrop = useCallback( async (acceptFiles: File[]) => {
     try {
@@ -47,6 +49,7 @@ export default function ImageUploadPlaceHolder() {
       );
       if(!error){
         setFileToProcess(data);
+        router.refresh();
       }
     } catch(error) {
       console.log("onDrop", error);      
@@ -72,8 +75,11 @@ export default function ImageUploadPlaceHolder() {
 
   const handleDialogOpenChange = async (event: boolean) => {
     // It just gets a boolean if the dialog is opening or closing
-    console.log(event);
-    
+    console.log(event);  
+    if(!event){
+      setFile(null);
+      setRestoredFile(null);
+    }  
   }
 
   const handleEnhance = async () => {
@@ -101,13 +107,21 @@ export default function ImageUploadPlaceHolder() {
       setRestoredFile({
         file: imageBlob,
         preview: URL.createObjectURL(imageBlob),
-      });
-
-      console.log("publicUrl: ",publicUrl);      
-
-    } catch (error) {
-      console.log("handleEnhance: ", error);
+      });      
       
+      const {data, error} = await supabase.storage.from(process.env.
+        NEXT_PUBLIC_SUPABASE__APP_BUCKET_IMAGE_FOLDER)
+        .upload(`${process.env.
+        NEXT_PUBLIC_SUPABASE__APP_BUCKET_IMAGE_FOLDER_RESTORED}/${file?.file.name}`,
+          imageBlob);
+      
+      if(error) {
+        setRestoredFile(null)
+      }
+    } catch (error) {
+      console.log("handleEnhance: ", error);  
+      setFile(null);
+      setRestoredFile(null);
     }
   }
 
@@ -186,7 +200,7 @@ export default function ImageUploadPlaceHolder() {
                       </div>
                     )
                   }
-                  { restoredFile && (
+                  { restoredFile?.preview && (
                       <div className="flex flex-row flex-wrap drop-shadow-md">
                         <div className="flex w60 h-60 relative">
                           <img 
